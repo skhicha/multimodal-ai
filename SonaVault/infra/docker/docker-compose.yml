@@ -1,0 +1,143 @@
+x-gpu-deploy: &gpu-deploy
+  ipc: host
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu, compute, utility]
+
+name: sonavault
+
+services:
+  nginx:
+    image: nginx:stable-alpine-slim
+    profiles: ["core"]
+    depends_on: [api]
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ../../apps/web/nginx.conf:/etc/nginx/nginx.conf:ro
+
+  api:
+    build: ../../apps/api
+    profiles: ["core"]
+    env_file: ../../.env
+    depends_on: [postgres, redis, qdrant]
+    volumes:
+      - sv-blobs:/data/blobs
+      - sv-cache:/data/cache
+    ports: ["8080:8080"]
+
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    profiles: ["core"]
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    ports: ["8888:8888", "8889:8889"]
+
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["core"]
+    environment:
+      POSTGRES_DB: sonavault
+      POSTGRES_USER: sonavault
+      POSTGRES_PASSWORD: sonavault
+    volumes: ["sv-postgres:/var/lib/postgresql/data"]
+
+  qdrant:
+    image: qdrant/qdrant:v1.20.0
+    profiles: ["core"]
+    volumes: ["sv-qdrant:/qdrant/storage"]
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["redis-queue"]
+    command: >
+      redis-server --appendonly yes --requirepass ${SV_REDIS_PASSWORD:-changeme}
+      --maxclients 10000 --timeout 1800 --maxmemory 512mb --maxmemory-policy noeviction
+    volumes: ["sv-redis:/data"]
+
+  rq-worker:
+    build: ../../apps/api
+    profiles: ["redis-queue"]
+    env_file: ../../.env
+    depends_on: [redis, postgres]
+    command: ["python", "-m", "sonavault.worker", "ingest-cpu", "gpu-speech", "gpu-nlp", "fixity-audit"]
+    volumes:
+      - sv-blobs:/data/blobs
+      - sv-cache:/data/cache
+
+  speech-audio-gpu:
+    <<: *gpu-deploy
+    build: ../../services/speech-audio-gpu
+    profiles: ["core"]
+    environment:
+      PYTORCH_CUDA_MEM_FRACTION: "0.15"
+      HF_HUB_OFFLINE: "1"
+      SV_INTERNAL_SERVICE_TOKEN: ${SV_INTERNAL_SERVICE_TOKEN}
+    volumes:
+      - ../../data/models:/data/models:ro
+      - sv-blobs:/data/blobs:ro
+    ports: ["8001:8001"]
+
+  nlp-retrieval-gpu:
+    <<: *gpu-deploy
+    build: ../../services/nlp-retrieval-gpu
+    profiles: ["core"]
+    environment:
+      PYTORCH_CUDA_MEM_FRACTION: "0.18"
+      HF_HUB_OFFLINE: "1"
+      SV_MT_MODEL_ID: ${SV_MT_MODEL_ID:-google/madlad400-3b-mt}
+      SV_INTERNAL_SERVICE_TOKEN: ${SV_INTERNAL_SERVICE_TOKEN}
+    volumes:
+      - ../../data/models:/data/models:ro
+      - sv-blobs:/data/blobs:ro
+    ports: ["8002:8002"]
+
+  vllm-moe-gpu:
+    <<: *gpu-deploy
+    image: nvcr.io/nvidia/vllm:26.10-py3
+    profiles: ["vllm"]
+    command: >
+      vllm serve /models/nvidia/Qwen3-30B-A3B-NVFP4
+      --gpu-memory-utilization 0.30 --enforce-eager --kv-cache-dtype fp8
+      --max-model-len 16384 --max-num-seqs 4 --enable-chunked-prefill
+    volumes:
+      - ../../data/models:/models:ro
+    ports: ["8000:8000"]
+
+  prometheus:
+    image: prom/prometheus:latest
+    profiles: ["monitoring"]
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=30d"
+      - "--storage.tsdb.retention.size=2GB"
+      - "--query.max-samples=5000000"
+    ports: ["9090:9090"]
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    profiles: ["monitoring"]
+    volumes:
+      - ../../infra/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports: ["3000:3000"]
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    profiles: ["monitoring"]
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command: ["--path.procfs=/host/proc", "--path.sysfs=/host/sys"]
+
+volumes:
+  sv-postgres:
+  sv-qdrant:
+  sv-redis:
+  sv-blobs:
+  sv-cache:

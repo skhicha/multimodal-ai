@@ -1,0 +1,16 @@
+# torch/torchvision/torchaudio deliberately NOT listed: inherited from the
+# nvcr.io/nvidia/pytorch base image (native sm_121 Blackwell build). Never pip
+# install them here.
+fastapi
+uvicorn[standard]
+pyannote.audio>=4.0
+soundfile
+transformers
+sentencepiece
+accelerate
+librosa
+# faster-whisper via ctranslate2 is built from source in a multi-stage step
+# (-DWITH_CUDA=ON -DWITH_CUDNN=ON -DCMAKE_CUDA_ARCHITECTURES=native) per spec
+# section "CTranslate2 aarch64 CUDA Strategy"; PyPI linux/aarch64 wheels are
+# CPU-only. Until that build stage lands, ASREngine falls back to
+# openai/whisper-large-v3-turbo on PyTorch FP16 SDPA directly.

@@ -1,0 +1,14 @@
+# torch/torchvision/torchaudio deliberately NOT listed (inherited from the
+# nvcr.io/nvidia/pytorch base image's native sm_121 Blackwell build).
+fastapi
+uvicorn[standard]
+FlagEmbedding
+gliner
+sentencepiece
+transformers
+accelerate
+# >=7.36: older protobuf runtimes can't load sentencepiece's compiled proto
+# gencode, which silently breaks DebertaV2Tokenizer's spm.model loading and
+# falls back to a tiktoken parser that then crashes on the binary file.
+protobuf>=7.36
+tiktoken

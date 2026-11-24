@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Persists uploads/thumbnails/keyframes/the SQLite DB across
+      # container restarts and rebuilds -- same folder the non-Docker
+      # ./run.sh workflow already uses, so nothing is duplicated.
+      - ./backend/data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

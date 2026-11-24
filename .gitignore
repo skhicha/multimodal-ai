@@ -1,0 +1,52 @@
+# Global Python & virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Global Node & builds
+node_modules/
+dist/
+build/
+.vite/
+*.tsbuildinfo
+.eslintcache
+
+# Global database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# SonaVault heavy assets and data
+SonaVault/data/models/
+SonaVault/data/blobs/
+SonaVault/data/cache/
+SonaVault/data/samples/
+SonaVault/docs/*.pdf
+SonaVault/docs/*.docx
+SonaVault/.env
+SonaVault/.claude/
+SonaVault/.playwright-mcp/
+
+# MemoryLens heavy assets and local docs
+memorylens-ai-vault/backend/venv/
+memorylens-ai-vault/backend/data/
+memorylens-ai-vault/backend/data_snapshots/
+memorylens-ai-vault/backend/.env
+memorylens-ai-vault/demo-media-for-reupload.zip
+memorylens-ai-vault/memorylane-frontend.zip
+memorylens-ai-vault/docs/
+memorylens-ai-vault/.playwright-mcp/
+memorylens-ai-vault/.claude/
+
+# System / OS
+.DS_Store
+.vscode/
+.idea/
+*.log

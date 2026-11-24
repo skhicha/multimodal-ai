@@ -1,0 +1,24 @@
+.timeline-group {
+  margin-bottom: 36px;
+}
+
+.timeline-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.timeline-date .count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.timeline-line {
+  flex: 1;
+  height: 1px;
+  background: var(--surface-border);
+}

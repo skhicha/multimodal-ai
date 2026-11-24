@@ -1,0 +1,22 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI's dependency injection requires Depends(...)/File(...)/Form(...)
+# as literal default values -- that's the framework's documented pattern, not
+# a bug.
+ignore = ["B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sonavault"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["apps/api/tests"]
+asyncio_mode = "auto"

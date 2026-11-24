@@ -1,0 +1,48 @@
+.idle-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 16px;
+}
+
+.idle-modal {
+  max-width: 360px;
+  width: 100%;
+  background: var(--surface, #1e1e1e);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.idle-modal h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.idle-modal p {
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.9;
+}
+
+.idle-modal-btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.idle-modal-btn:hover {
+  opacity: 0.9;
+}

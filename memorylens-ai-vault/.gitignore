@@ -1,0 +1,39 @@
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/*.tsbuildinfo
+
+# Python / backend
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+*.pyc
+
+# Env secrets
+.env
+backend/.env
+
+# Vault data (uploads, thumbnails, keyframes, sqlite db) - never committed
+backend/data/uploads/
+backend/data/thumbnails/
+backend/data/keyframes/
+backend/data/*.db
+backend/data/*.db-journal
+
+# Packaged demo media for re-upload elsewhere
+demo-media-for-reupload.zip
+
+# Docs folder (local only, not for GitHub)
+docs/
+
+# Data snapshots (archived synthetic + curated real-world test data) - local only
+backend/data_snapshots/
+
+# Editor / OS cruft
+.DS_Store
+.vscode/
+.idea/
+*.log
+.playwright-mcp/
+memorylane-frontend.zip

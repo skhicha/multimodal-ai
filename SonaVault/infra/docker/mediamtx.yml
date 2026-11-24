@@ -1,0 +1,18 @@
+# Audio-only Low-Latency HLS (AAC-LC). Zero video/image streams — per
+# SonaVault's non-visual domain constraint.
+logLevel: info
+
+hls: yes
+hlsVariant: lowLatency
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsSegmentMaxSize: 50M
+hlsAllowOrigin: "*"
+
+authMethod: http
+authHTTPAddress: http://api:8080/api/v1/streams/mediamtx-auth
+authHTTPExclude:
+  - action: api
+
+paths:
+  all_others:

@@ -1,6 +1,0 @@
-[submodule "SonaVault"]
-	path = SonaVault
-	url = https://github.com/skhicha/sonavault.git
-[submodule "memorylens-ai-vault"]
-	path = memorylens-ai-vault
-	url = https://github.com/skhicha/memorylens-ai-vault.git
