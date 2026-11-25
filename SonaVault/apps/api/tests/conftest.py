@@ -20,14 +20,14 @@ with open(_key_path, "wb") as f:
         )
     )
 
-os.environ.setdefault("SV_JWT_ED25519_PRIVATE_KEY_PATH", _key_path)
-os.environ.setdefault("SV_MASTER_KEK_B64", base64.b64encode(os.urandom(32)).decode())
-os.environ.setdefault("SV_BLIND_INDEX_KEY_B64", base64.b64encode(os.urandom(32)).decode())
-os.environ.setdefault(
-    "SV_DATABASE_URL", f"sqlite+aiosqlite:///{os.path.join(_tmp_dir, 'sonavault_test.db')}"
-)
-os.environ.setdefault("SV_BLOB_ROOT", os.path.join(_tmp_dir, "blobs"))
-os.environ.setdefault("SV_CACHE_ROOT", os.path.join(_tmp_dir, "cache"))
+os.environ["SV_JWT_ED25519_PRIVATE_KEY_PATH"] = _key_path
+os.environ["SV_MASTER_KEK_B64"] = base64.b64encode(os.urandom(32)).decode()
+os.environ["SV_BLIND_INDEX_KEY_B64"] = base64.b64encode(os.urandom(32)).decode()
+os.environ["SV_DATABASE_URL"] = f"sqlite+aiosqlite:///{os.path.join(_tmp_dir, 'sonavault_test.db')}"
+os.environ["SV_BLOB_ROOT"] = os.path.join(_tmp_dir, "blobs")
+os.environ["SV_CACHE_ROOT"] = os.path.join(_tmp_dir, "cache")
+os.environ["SV_QDRANT_URL"] = "http://localhost:6333"
+
 
 import pytest_asyncio  # noqa: E402
 from fakeredis import aioredis as fake_aioredis  # noqa: E402
@@ -52,3 +52,11 @@ async def _create_schema():
     yield
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture
+async def db_session():
+    from sonavault.db import SessionLocal
+
+    async with SessionLocal() as session:
+        yield session

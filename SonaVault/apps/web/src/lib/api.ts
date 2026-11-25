@@ -454,3 +454,81 @@ export function updateFeatureFlag(key: string, enabled: boolean) {
 export function listAuditLogs(): Promise<AuditLogOut[]> {
   return apiFetch("/admin/audit-logs");
 }
+
+// --- Telemetry & GB10 Hardware ---
+export interface UnifiedMemoryTelemetry {
+  total_bytes: number;
+  used_bytes: number;
+  available_bytes: number;
+  utilization_percent: number;
+  total_gib: number;
+  used_gib: number;
+}
+
+export interface GpuTelemetry {
+  device_name: string;
+  utilization_percent: number;
+  temperature_celsius: number;
+  power_watts: number | null;
+  unified_memory_mode: boolean;
+  architecture: string;
+}
+
+export interface MoETelemetry {
+  model_id: string;
+  running_requests: number;
+  waiting_requests: number;
+  gpu_cache_usage_percent: number;
+  generation_throughput_tok_s: number;
+  quantization: string;
+}
+
+export interface SidecarStatus {
+  name: string;
+  url: string;
+  healthy: boolean;
+  latency_ms: number | null;
+  last_checked: string;
+}
+
+export interface GB10TelemetryResponse {
+  timestamp: string;
+  hostname: string;
+  platform: string;
+  unified_memory: UnifiedMemoryTelemetry;
+  gpu: GpuTelemetry;
+  moe: MoETelemetry;
+  pipeline_jobs_running: number;
+  sidecars: SidecarStatus[];
+}
+
+export interface WatchdogStatusResponse {
+  memory_level: "normal" | "warning" | "backpressure" | "emergency";
+  used_percent: number;
+  total_gib: number;
+  used_gib: number;
+  backpressure_active: boolean;
+  thresholds: {
+    warning_percent: number;
+    backpressure_percent: number;
+    emergency_percent: number;
+  };
+}
+
+export function getGB10Telemetry(): Promise<GB10TelemetryResponse> {
+  return apiFetch("/telemetry/gb10");
+}
+
+export function getWatchdogStatus(): Promise<WatchdogStatusResponse> {
+  return apiFetch("/telemetry/watchdog");
+}
+
+export function triggerWatchdogRelief(): Promise<{
+  status: string;
+  memory_level: string;
+  before_relief_gib: number;
+  after_relief_gib: number;
+}> {
+  return apiFetch("/telemetry/watchdog/relief", { method: "POST" });
+}
+
