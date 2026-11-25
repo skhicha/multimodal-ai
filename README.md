@@ -12,22 +12,24 @@ Designed and engineered for real-world hardware deployments — from edge laptop
 <tr>
 <td width="50%" valign="top">
 
-### 🌊 [SonaVault: Acoustic Intelligence Platform](https://github.com/skhicha/sonavault)
+### 🌊 [SonaVault: Acoustic Intelligence Platform](./SonaVault)
 **Sovereign Bioacoustic & Spoken Audio Intelligence on NVIDIA DGX Spark GB10**
 
-A 100%-open-source, non-visual multimodal platform processing hydrophone soundscapes, multilingual field dispatches, and regulatory environmental documentation.
+A 100%-open-source, non-visual multimodal platform processing hydrophone soundscapes, multilingual field dispatches, and regulatory environmental documentation. Fully delivered across all 4 architectural sprints with 121 automated tests.
 
 - **Audio & Speech Perception**: `openai/whisper-large-v3-turbo` ASR, `pyannote/speaker-diarization-community-1`, `MIT/ast-finetuned-audioset` acoustic tagging, `laion/clap-htsat-fused` cross-modal audio-text embeddings.
 - **Text & Document AI**: `BAAI/bge-m3` dense/sparse embeddings, `BAAI/bge-reranker-v2-m3` cross-encoder, `urchade/gliner_multi-v2.1` zero-shot PII/domain NER, `google/madlad400-3b-mt` 419-language MT.
-- **Hardware Acceleration**: Built atop NVIDIA Blackwell GB10 unified memory (128 GB), sm_121 architecture, running `nvidia/Qwen3-30B-A3B-NVFP4` via vLLM with FP8 KV cache and chunked prefill.
-- **Data & Streaming Infrastructure**: MediaMTX Low-Latency HLS (LL-HLS) audio streaming, Qdrant v1.20 3-collection hybrid RRF search (`k=60`), OAIS/PREMIS hash-chained provenance ledger with cryptographic immutability, WebAuthn/FIDO2 passkeys + Argon2id MFA security.
+- **Pipeline & Infrastructure**: 7-stage resumable ingestion DAG with checkpoint admission control, MediaMTX Low-Latency HLS (LL-HLS) audio streaming, Qdrant v1.20 3-collection hybrid RRF search (`k=60`), OAIS/PREMIS hash-chained provenance ledger with cryptographic immutability, WebAuthn/FIDO2 passkeys + Argon2id MFA security.
+- **Hardware & Observability**: Built atop NVIDIA Blackwell GB10 unified memory (128 GB), sm_121 architecture, running `nvidia/Qwen3-30B-A3B-NVFP4` via vLLM with FP8 KV cache. Features a 4-level Host Memory Watchdog daemon, provisioned Grafana dashboards, chaos test suite, and DeepEval quantitative RAG evaluation.
+- **Frontend SPA**: Full 9-feature React 18 + Vite + TypeScript application with Tailwind CSS, Framer Motion, and Recharts.
 
-`PyTorch` `CUDA 13` `vLLM` `Qdrant RRF` `FastAPI` `React 18` `Tailwind` `MediaMTX`
+`PyTorch` `CUDA 13` `vLLM` `Qdrant RRF` `FastAPI` `React 18` `Tailwind` `MediaMTX` `DeepEval`
 
 </td>
 <td width="50%" valign="top">
 
-### 📸 [MemoryLens AI: Personal Media Vault](https://github.com/skhicha/memorylens-ai-vault)
+### 📸 [MemoryLens AI: Personal Media Vault](./memorylens-ai-vault)
+
 **Local Multimodal Personal Media & Vision-Language Intelligence**
 
 A fully local AI media intelligence vault auto-processing photos and videos with computer vision, audio transcription, spatio-temporal clustering, and cited RAG conversation.
