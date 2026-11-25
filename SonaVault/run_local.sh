@@ -33,7 +33,7 @@ tmux new-session -d -s sonavault-api \
    SV_JWT_REFRESH_TTL_DAYS=7 \
    SV_MASTER_KEK_B64='dGVzdF9tYXN0ZXJfa2VrX2Jhc2U2NF8zMmJ5dGVzISE=' \
    SV_BLIND_INDEX_KEY_B64='dGVzdF9ibGluZF9pbmRleF9iYXNlNjRfMzJieXRlcyE=' \
-   SV_INTERNAL_SERVICE_TOKEN='dev-internal' \
+   SV_INTERNAL_SERVICE_TOKEN='dev-secret-internal-sidecar-token-2026' \
    SV_WEBAUTHN_RP_ID='localhost' \
    SV_ENFORCE_MFA_TIER_MIN=99 \
    SV_ENFORCE_MFA_ALL=false \
