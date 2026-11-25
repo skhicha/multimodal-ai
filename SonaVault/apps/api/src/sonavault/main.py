@@ -8,6 +8,7 @@ from sonavault.config import get_settings
 from sonavault.slices.acoustics.router import router as acoustics_router
 from sonavault.slices.admin.router import router as admin_router
 from sonavault.slices.auth.router import router as auth_router
+from sonavault.slices.briefings.router import router as briefings_router
 from sonavault.slices.documents.router import router as documents_router
 from sonavault.slices.ingest.router import router as ingest_router
 from sonavault.slices.jobs.router import router as jobs_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     app.include_router(transcripts_router)
     app.include_router(acoustics_router)
     app.include_router(search_router)
+    app.include_router(briefings_router)
 
     # Spec requires /metrics reachable only on the internal :9182 port, never
     # the public-facing port; production deploy binds a second uvicorn worker

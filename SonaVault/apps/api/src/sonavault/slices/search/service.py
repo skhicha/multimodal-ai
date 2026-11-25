@@ -93,3 +93,107 @@ async def acoustic_text_search(
         }
         for p in result.points
     ]
+
+
+async def debug_hybrid_text_search(
+    *,
+    query: str,
+    collection: str,
+    limit: int,
+    max_tier: int,
+    sanctuary_scopes: list[str],
+    full_access: bool,
+) -> dict:
+    embeddings = await nlp_client.embed_bge_m3([query])
+    embedding = embeddings[0]
+
+    dense_points = await qdrant_repo.search_dense_only(
+        collection,
+        dense_vector=embedding.dense,
+        limit=limit,
+        max_tier=max_tier,
+        sanctuary_scopes=sanctuary_scopes,
+        full_access=full_access,
+    )
+
+    sparse_points = await qdrant_repo.search_sparse_only(
+        collection,
+        sparse_indices=embedding.sparse.indices,
+        sparse_values=embedding.sparse.values,
+        limit=limit,
+        max_tier=max_tier,
+        sanctuary_scopes=sanctuary_scopes,
+        full_access=full_access,
+    )
+
+    rrf_points = await qdrant_repo.hybrid_search(
+        collection,
+        dense_vector=embedding.dense,
+        sparse_indices=embedding.sparse.indices,
+        sparse_values=embedding.sparse.values,
+        limit=limit,
+        max_tier=max_tier,
+        sanctuary_scopes=sanctuary_scopes,
+        full_access=full_access,
+    )
+
+    by_id: dict[str, dict] = {}
+
+    for rank, p in enumerate(dense_points, 1):
+        pid = str(p.id)
+        if pid not in by_id:
+            by_id[pid] = {
+                "point_id": pid,
+                "asset_sha256": p.payload.get("asset_sha256", ""),
+                "text": p.payload.get("text"),
+                "payload": p.payload,
+            }
+        by_id[pid]["dense_score"] = float(p.score)
+        by_id[pid]["dense_rank"] = rank
+
+    for rank, p in enumerate(sparse_points, 1):
+        pid = str(p.id)
+        if pid not in by_id:
+            by_id[pid] = {
+                "point_id": pid,
+                "asset_sha256": p.payload.get("asset_sha256", ""),
+                "text": p.payload.get("text"),
+                "payload": p.payload,
+            }
+        by_id[pid]["sparse_score"] = float(p.score)
+        by_id[pid]["sparse_rank"] = rank
+
+    for rank, p in enumerate(rrf_points, 1):
+        pid = str(p.id)
+        if pid not in by_id:
+            by_id[pid] = {
+                "point_id": pid,
+                "asset_sha256": p.payload.get("asset_sha256", ""),
+                "text": p.payload.get("text"),
+                "payload": p.payload,
+            }
+        by_id[pid]["rrf_score"] = float(p.score)
+        by_id[pid]["rrf_rank"] = rank
+
+    items = list(by_id.values())
+    if items:
+        docs = [item.get("text") or "" for item in items]
+        rerank_result = await nlp_client.rerank(query, docs)
+        for idx, res in enumerate(rerank_result.results):
+            items[idx]["rerank_score"] = float(res.score)
+
+        sorted_items = sorted(
+            items,
+            key=lambda x: x.get("rerank_score") if x.get("rerank_score") is not None else -999.0,
+            reverse=True,
+        )
+        for final_rank, item in enumerate(sorted_items, 1):
+            item["rerank_rank"] = final_rank
+        items = sorted_items
+
+    return {
+        "query": query,
+        "collection": collection,
+        "total_candidates": len(items),
+        "items": items,
+    }

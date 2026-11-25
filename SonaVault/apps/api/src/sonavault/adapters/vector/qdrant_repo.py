@@ -153,3 +153,52 @@ async def hybrid_search(
         query_filter=query_filter,
     )
     return result.points
+
+
+async def search_dense_only(
+    collection: str,
+    *,
+    dense_vector: list[float],
+    limit: int,
+    max_tier: int,
+    sanctuary_scopes: list[str],
+    full_access: bool = False,
+) -> list[models.ScoredPoint]:
+    schema = COLLECTIONS[collection]
+    client = get_client()
+    query_filter = rbac_filter(
+        max_tier=max_tier, sanctuary_scopes=sanctuary_scopes, full_access=full_access
+    )
+    result = await client.query_points(
+        collection_name=collection,
+        query=dense_vector,
+        using=schema["dense"],
+        limit=limit,
+        query_filter=query_filter,
+    )
+    return result.points
+
+
+async def search_sparse_only(
+    collection: str,
+    *,
+    sparse_indices: list[int],
+    sparse_values: list[float],
+    limit: int,
+    max_tier: int,
+    sanctuary_scopes: list[str],
+    full_access: bool = False,
+) -> list[models.ScoredPoint]:
+    schema = COLLECTIONS[collection]
+    client = get_client()
+    query_filter = rbac_filter(
+        max_tier=max_tier, sanctuary_scopes=sanctuary_scopes, full_access=full_access
+    )
+    result = await client.query_points(
+        collection_name=collection,
+        query=models.SparseVector(indices=sparse_indices, values=sparse_values),
+        using=schema["sparse"],
+        limit=limit,
+        query_filter=query_filter,
+    )
+    return result.points

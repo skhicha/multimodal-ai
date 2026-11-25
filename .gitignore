@@ -24,10 +24,7 @@ build/
 *.db-journal
 
 # SonaVault heavy assets and data
-SonaVault/data/models/
-SonaVault/data/blobs/
-SonaVault/data/cache/
-SonaVault/data/samples/
+SonaVault/data/
 SonaVault/docs/*.pdf
 SonaVault/docs/*.docx
 SonaVault/.env

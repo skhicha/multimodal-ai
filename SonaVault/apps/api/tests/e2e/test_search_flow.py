@@ -187,3 +187,64 @@ async def test_acoustic_text_search_uses_clap_embedding(viewer_client: AsyncClie
     assert resp.status_code == 200
     results = resp.json()["results"]
     assert any(r["asset_sha256"] == acoustic_sha for r in results)
+
+
+@respx.mock
+async def test_debug_hybrid_search_returns_breakdown(viewer_client: AsyncClient):
+    settings = get_settings()
+    _passthrough_qdrant_route(settings)
+
+    test_sha = uuid.uuid4().hex + uuid.uuid4().hex
+    dense = _random_dense(1024)
+    await qdrant_repo.upsert(
+        "transcript_segments",
+        [
+            qdrant_repo.UpsertPoint(
+                point_id=qdrant_repo.deterministic_point_id(
+                    asset_sha256=test_sha, segment_index=0, model_version="test-debug"
+                ),
+                dense_vector=dense,
+                sparse_indices=[3, 4],
+                sparse_values=[0.8, 0.6],
+                payload={
+                    "asset_sha256": test_sha,
+                    "sanctuary_id": viewer_client.sanctuary_code,
+                    "rbac_tier": 1,
+                    "text": "debug bioacoustic signal breakdown test",
+                },
+            )
+        ],
+    )
+
+    respx.post(f"{settings.nlp_sidecar_url}/v1/embed/bge-m3").mock(
+        return_value=Response(
+            200,
+            json={
+                "embeddings": [
+                    {"dense": dense, "sparse": {"indices": [3, 4], "values": [0.8, 0.6]}}
+                ]
+            },
+        )
+    )
+    respx.post(f"{settings.nlp_sidecar_url}/v1/rerank").mock(
+        return_value=Response(200, json={"results": [{"index": 0, "score": 0.98}]})
+    )
+
+    resp = await viewer_client.post(
+        "/api/v1/search/debug",
+        json={"query": "bioacoustic signal", "collection": "transcript_segments"},
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["query"] == "bioacoustic signal"
+    assert body["collection"] == "transcript_segments"
+    assert body["total_candidates"] >= 1
+    item = next(it for it in body["items"] if it["asset_sha256"] == test_sha)
+    assert item["dense_score"] is not None
+    assert item["dense_rank"] >= 1
+    assert item["sparse_score"] is not None
+    assert item["sparse_rank"] >= 1
+    assert item["rrf_score"] is not None
+    assert item["rrf_rank"] >= 1
+    assert item["rerank_score"] == 0.98
+    assert item["rerank_rank"] >= 1

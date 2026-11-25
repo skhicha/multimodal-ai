@@ -8,6 +8,7 @@ from sonavault.models.auth import (
     UserSession,
     WebAuthnCredential,
 )
+from sonavault.models.briefings import Briefing
 from sonavault.models.pipeline import PipelineJob, PipelineStageRun
 from sonavault.models.provenance import ProvenanceEvent
 from sonavault.models.streams import HydrophoneStream
@@ -27,4 +28,5 @@ __all__ = [
     "TranscriptSegment",
     "AcousticEvent",
     "HydrophoneStream",
+    "Briefing",
 ]
