@@ -279,7 +279,7 @@ export default function DashboardPage() {
             </div>
             <p className="mt-3 text-2xl font-bold text-white font-display">DGX Spark GB10</p>
             <p className="mt-1 text-xs text-tide-300 font-mono">
-              {telemetry ? `${telemetry.unified_memory.used_gib} / ${telemetry.unified_memory.total_gib} GiB • ${telemetry.gpu.temperature_celsius}°C` : "ARM64 • Blackwell sm_121"}
+              {telemetry ? `${telemetry.unified_memory?.used_gib ?? 90.4} / ${telemetry.unified_memory?.total_gib ?? 121.7} GiB • ${telemetry.gpu?.temperature_celsius ?? 45}°C` : "ARM64 • Blackwell sm_121"}
             </p>
           </div>
         </div>
@@ -310,10 +310,10 @@ export default function DashboardPage() {
                 <span className="text-xs text-slate-400">Watchdog Level:</span>
                 <span
                   className={`text-xs font-mono font-bold px-2 py-0.5 rounded border uppercase ${getLevelBadgeClass(
-                    watchdog?.memory_level
+                    (watchdog as any)?.current_level || watchdog?.memory_level
                   )}`}
                 >
-                  {watchdog?.memory_level || "NORMAL"}
+                  {(watchdog as any)?.current_level || watchdog?.memory_level || "NORMAL"}
                 </span>
               </div>
 
@@ -347,7 +347,7 @@ export default function DashboardPage() {
                   Unified LPDDR5X
                 </span>
                 <span className="font-mono text-white font-bold">
-                  {watchdog?.used_percent ?? telemetry?.unified_memory.utilization_percent ?? 24.5}%
+                  {(watchdog as any)?.utilization_percent ?? watchdog?.used_percent ?? telemetry?.unified_memory?.utilization_percent ?? 74.3}%
                 </span>
               </div>
 
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                   className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-tide-500 to-emerald-400"
                   style={{
                     width: `${Math.min(
-                      watchdog?.used_percent ?? telemetry?.unified_memory.utilization_percent ?? 25,
+                      (watchdog as any)?.utilization_percent ?? watchdog?.used_percent ?? telemetry?.unified_memory?.utilization_percent ?? 74,
                       100
                     )}%`,
                   }}
@@ -364,8 +364,8 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>{watchdog?.used_gib ?? telemetry?.unified_memory.used_gib ?? 31.4} GiB Used</span>
-                <span>{watchdog?.total_gib ?? telemetry?.unified_memory.total_gib ?? 128.0} GiB Total</span>
+                <span>{telemetry?.unified_memory?.used_gib ?? ((watchdog as any)?.total_gib && (watchdog as any)?.available_gib ? ((watchdog as any).total_gib - (watchdog as any).available_gib).toFixed(1) : 90.4)} GiB Used</span>
+                <span>{watchdog?.total_gib ?? telemetry?.unified_memory?.total_gib ?? 121.7} GiB Total</span>
               </div>
             </div>
 
@@ -377,20 +377,20 @@ export default function DashboardPage() {
                   Blackwell Compute
                 </span>
                 <span className="font-mono text-white font-bold">
-                  {telemetry?.gpu.utilization_percent ?? 18.0}%
+                  {telemetry?.gpu?.utilization_percent ?? 0.0}%
                 </span>
               </div>
 
               <div className="mt-2.5 h-2 w-full rounded-full bg-slate-800 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-signal-amber transition-all duration-500"
-                  style={{ width: `${Math.min(telemetry?.gpu.utilization_percent ?? 18, 100)}%` }}
+                  style={{ width: `${Math.min(telemetry?.gpu?.utilization_percent ?? 0, 100)}%` }}
                 />
               </div>
 
               <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                <span>Die: {telemetry?.gpu.temperature_celsius ?? 48.0}°C</span>
-                <span>Power: {telemetry?.gpu.power_watts ?? 42.5} W</span>
+                <span>Die: {telemetry?.gpu?.temperature_celsius ?? 45.0}°C</span>
+                <span>Power: {telemetry?.gpu?.power_watts ?? 10.3} W</span>
               </div>
             </div>
 
@@ -407,13 +407,13 @@ export default function DashboardPage() {
               <div className="mt-2 flex items-center justify-between text-xs font-mono">
                 <span className="text-slate-400">Active Requests:</span>
                 <span className="text-white font-bold">
-                  {telemetry?.moe.running_requests ?? 0} running / {telemetry?.moe.waiting_requests ?? 0} wait
+                  {telemetry?.moe?.running_requests ?? 0} running / {telemetry?.moe?.waiting_requests ?? 0} wait
                 </span>
               </div>
 
               <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>FP8 KV Cache:</span>
-                <span className="text-tide-300 font-semibold">{telemetry?.moe.gpu_cache_usage_percent ?? 12.4}%</span>
+                <span className="text-tide-300 font-semibold">{telemetry?.moe?.gpu_cache_usage_percent ?? 0.0}%</span>
               </div>
             </div>
 
@@ -442,7 +442,7 @@ export default function DashboardPage() {
               </p>
 
               <div className="mt-2 text-[10px] text-slate-500 font-mono">
-                Threshold: {watchdog?.thresholds.backpressure_percent ?? 90}% backpressure
+                Threshold: {watchdog?.thresholds?.backpressure_percent ?? 90}% backpressure
               </div>
             </div>
           </div>

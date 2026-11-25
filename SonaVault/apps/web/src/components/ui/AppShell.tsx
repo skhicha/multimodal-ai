@@ -14,6 +14,7 @@ import {
 import type { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
+import ThemeToggle from "@/components/ui/ThemeToggle";
 import { apiFetch, setAccessToken } from "@/lib/api";
 
 const NAV_ITEMS = [
@@ -76,11 +77,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </nav>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-abyss-800/80 border border-white/5 text-[11px] font-mono text-slate-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>MoE 30B NVFP4</span>
             </div>
+            <ThemeToggle />
             <button
               onClick={handleLogout}
               className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-signal-coral"

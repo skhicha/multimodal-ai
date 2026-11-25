@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="abyssGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0e172a" />
+      <stop offset="100%" stop-color="#050811" />
+    </linearGradient>
+    <linearGradient id="tideGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5eead4" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <radialGradient id="beaconGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded plate -->
+  <rect width="64" height="64" rx="16" fill="url(#abyssGrad)" stroke="#2dd4bf" stroke-width="1.5" stroke-opacity="0.3" />
+
+  <!-- Outer sonar pulse ring -->
+  <circle cx="32" cy="32" r="23" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-dasharray="4 3" opacity="0.4" />
+
+  <!-- Middle sonar wave ring -->
+  <circle cx="32" cy="32" r="16" fill="none" stroke="#2dd4bf" stroke-width="2.2" stroke-opacity="0.75" />
+
+  <!-- Inner acoustic pulse ring -->
+  <circle cx="32" cy="32" r="9" fill="none" stroke="#5eead4" stroke-width="2" />
+
+  <!-- Beacon glow backdrop -->
+  <circle cx="32" cy="32" r="12" fill="url(#beaconGlow)" />
+
+  <!-- Center active hydrophone beacon dot -->
+  <circle cx="32" cy="32" r="4" fill="#ffffff" />
+  <circle cx="32" cy="32" r="2.5" fill="#2dd4bf" />
+
+  <!-- Acoustic sweep arc -->
+  <path d="M 32 32 L 48 20 A 20 20 0 0 0 32 12 Z" fill="#2dd4bf" opacity="0.25" />
+</svg>

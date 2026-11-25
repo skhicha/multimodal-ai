@@ -9,7 +9,7 @@
 }
 
 body {
-  @apply bg-abyss-950 text-slate-100 font-body antialiased;
+  @apply bg-abyss-950 text-slate-100 font-body antialiased transition-colors duration-200;
 }
 
 h1, h2, h3, .font-display {
@@ -54,4 +54,237 @@ h1, h2, h3, .font-display {
 
 .leaflet-popup-tip {
   background: #0a1120 !important;
+}
+
+/* ==========================================================================
+   OCEAN LIGHT MODE OVERRIDES
+   ========================================================================== */
+
+html.light,
+html.light :root {
+  color-scheme: light;
+}
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+/* Surfaces and Cards */
+html.light .bg-abyss-950 {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-abyss-950\/80,
+html.light .bg-abyss-950\/60,
+html.light .bg-abyss-950\/90 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+}
+
+html.light .bg-abyss-900 {
+  background-color: #ffffff !important;
+}
+
+html.light .bg-abyss-900\/90,
+html.light .bg-abyss-900\/80,
+html.light .bg-abyss-900\/70,
+html.light .bg-abyss-900\/60,
+html.light .bg-abyss-900\/50,
+html.light .bg-abyss-900\/40 {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html.light .bg-abyss-800 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-abyss-800\/80,
+html.light .bg-abyss-800\/60,
+html.light .bg-abyss-800\/50,
+html.light .bg-abyss-800\/40 {
+  background-color: rgba(241, 245, 249, 0.85) !important;
+}
+
+html.light .bg-abyss-700 {
+  background-color: #e2e8f0 !important;
+}
+
+html.light .bg-white\/5,
+html.light .bg-white\/10,
+html.light .bg-white\/\[0\.02\] {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .bg-white\/15,
+html.light .bg-white\/20 {
+  background-color: #e2e8f0 !important;
+}
+
+/* Subtle Card Elevation */
+html.light .rounded-2xl,
+html.light .rounded-xl {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+}
+
+html.light .shadow-2xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Borders */
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20 {
+  border-color: #e2e8f0 !important;
+}
+
+html.light .border-white\/30,
+html.light .border-white\/40 {
+  border-color: #cbd5e1 !important;
+}
+
+html.light .divide-white\/5 > :not([hidden]) ~ :not([hidden]),
+html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e2e8f0 !important;
+}
+
+/* Typography */
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #64748b !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.light .hover\:text-white:hover {
+  color: #0f172a !important;
+}
+
+html.light .hover\:text-slate-200:hover {
+  color: #0f172a !important;
+}
+
+/* Ocean Teal Accents in Light Mode */
+html.light .text-tide-300,
+html.light .text-tide-400 {
+  color: #0d9488 !important;
+}
+
+html.light .text-tide-500 {
+  color: #0f766e !important;
+}
+
+html.light .bg-tide-500\/10,
+html.light .bg-tide-500\/15,
+html.light .bg-tide-500\/20 {
+  background-color: rgba(13, 148, 136, 0.12) !important;
+}
+
+html.light .border-tide-400\/20,
+html.light .border-tide-400\/30,
+html.light .border-tide-400\/40 {
+  border-color: rgba(13, 148, 136, 0.28) !important;
+}
+
+/* Inputs, Textareas, and Selects */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2) !important;
+}
+
+/* Hover States */
+html.light .hover\:bg-white\/5:hover,
+html.light .hover\:bg-white\/10:hover {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .hover\:border-white\/30:hover {
+  border-color: #94a3b8 !important;
+}
+
+/* Pre / Code Blocks */
+html.light pre,
+html.light code:not(.hljs) {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Tables */
+html.light th {
+  background-color: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light td {
+  color: #1e293b !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Sonar Backdrop & Grid in Light Mode */
+html.light .bg-sonar-grid {
+  background-image: radial-gradient(circle at 50% 0%, rgba(13, 148, 136, 0.08), transparent 70%) !important;
+}
+
+html.light .from-transparent.via-abyss-950\/60.to-abyss-950 {
+  background-image: linear-gradient(to bottom, transparent, rgba(248, 250, 252, 0.7), #f8fafc) !important;
+}
+
+/* Scrollbar for Light Mode */
+html.light ::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Leaflet Light Mode */
+html.light .leaflet-container {
+  background: #e2e8f0 !important;
+}
+
+html.light .leaflet-popup-content-wrapper {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+html.light .leaflet-popup-tip {
+  background: #ffffff !important;
 }

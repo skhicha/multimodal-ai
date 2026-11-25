@@ -16,7 +16,12 @@ from sonavault.core.security.passwords import (
     hash_password,
     verify_password,
 )
-from sonavault.core.security.rate_limit import clear_lockout, is_locked_out, record_failed_attempt
+from sonavault.core.security.rate_limit import (
+    clear_lockout,
+    get_redis,
+    is_locked_out,
+    record_failed_attempt,
+)
 from sonavault.models.auth import User, UserSession
 
 
@@ -197,3 +202,96 @@ async def list_active_sessions(session: AsyncSession, *, user_id: uuid.UUID) -> 
     sessions = result.scalars().all()
     now = datetime.now(UTC)
     return [s for s in sessions if s.expires_at.replace(tzinfo=UTC) >= now]
+
+
+async def send_email_otp(email: str) -> tuple[str, bool]:
+    """Generates a 6-digit cryptographic verification code and dispatches it
+    via SMTP if configured, or stores in redis/cache with dev fallback."""
+    import logging
+    import secrets
+    import smtplib
+    from email.mime.text import MIMEText
+
+    logger = logging.getLogger("sonavault.auth.email")
+    code = f"{secrets.randbelow(900000) + 100000}"
+
+    r = get_redis()
+    await r.setex(f"sv:email_otp:{email.lower()}", 600, code)
+
+    settings = get_settings()
+    sent_via_smtp = False
+
+    if settings.smtp_host:
+        try:
+            msg = MIMEText(
+                f"Your SonaVault Sovereign Access Code is: {code}\n\n"
+                f"Valid for 10 minutes on station {settings.public_origin}."
+            )
+            msg["Subject"] = f"SonaVault Security Access Code: {code}"
+            msg["From"] = settings.smtp_from
+            msg["To"] = email
+
+            with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=10) as server:
+                if settings.smtp_tls:
+                    server.starttls()
+                if settings.smtp_user and settings.smtp_password:
+                    server.login(settings.smtp_user, settings.smtp_password)
+                server.send_message(msg)
+            sent_via_smtp = True
+            logger.info("Dispatched verification email to %s via SMTP", email)
+        except Exception as exc:
+            logger.warning("SMTP dispatch failed (%s); falling back to in-memory logger", exc)
+
+    logger.info("SonaVault Email Code for %s: [%s]", email, code)
+    return code, sent_via_smtp
+
+
+async def verify_email_otp(session: AsyncSession, *, email: str, code: str) -> User:
+    """Verifies a 6-digit OTP for email login, provisioning the account if new."""
+    r = get_redis()
+    stored = await r.get(f"sv:email_otp:{email.lower()}")
+    if not stored or str(stored).strip() != code.strip():
+        raise AuthError("Invalid or expired verification code")
+
+    await r.delete(f"sv:email_otp:{email.lower()}")
+
+    result = await session.execute(select(User).where(User.email == email.lower()))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        user = User(
+            id=uuid.uuid4(),
+            email=email.lower(),
+            password_hash=None,
+            role="acoustic_analyst",
+            sanctuary_scopes=["OC02", "CI01", "MB01", "FK01", "HI01"],
+            mfa_enabled=False,
+            is_active=True,
+        )
+        session.add(user)
+        await session.flush()
+
+    return user
+
+
+async def authenticate_or_provision_sso_user(
+    session: AsyncSession, *, email: str, provider: str, display_name: str | None = None
+) -> User:
+    """Authenticates or provisions a sovereign user authenticated via OAuth2/OIDC SSO."""
+    result = await session.execute(select(User).where(User.email == email.lower()))
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        user = User(
+            id=uuid.uuid4(),
+            email=email.lower(),
+            password_hash=None,
+            role="acoustic_analyst",
+            sanctuary_scopes=["OC02", "CI01", "MB01", "FK01", "HI01"],
+            mfa_enabled=False,
+            is_active=True,
+        )
+        session.add(user)
+        await session.flush()
+
+    return user

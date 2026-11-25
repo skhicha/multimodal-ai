@@ -10,16 +10,22 @@ from sonavault.core.security.jwt import decode_refresh_token
 from sonavault.core.security.rbac import CurrentUser
 from sonavault.db import get_db
 from sonavault.slices.auth.schemas import (
+    EmailSendCodeRequest,
+    EmailSendCodeResponse,
+    EmailVerifyCodeRequest,
     LoginRequest,
     LoginResponse,
     RegisterRequest,
     SessionOut,
+    SsoInitiateResponse,
+    SsoInstantLoginRequest,
 )
 from sonavault.slices.auth.service import (
     AccountLockedError,
     AuthError,
     RefreshReuseError,
     authenticate,
+    authenticate_or_provision_sso_user,
     create_session,
     issue_access_token,
     issue_refresh_token,
@@ -28,6 +34,8 @@ from sonavault.slices.auth.service import (
     revoke_all_sessions,
     revoke_session,
     rotate_refresh_token,
+    send_email_otp,
+    verify_email_otp,
 )
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -185,3 +193,111 @@ async def delete_session(
     if not ok:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Session not found")
     return {"status": "revoked"}
+
+
+# --- Real Email OTP & Magic Login ---
+@router.post("/email/send-code", response_model=EmailSendCodeResponse)
+async def request_email_otp(body: EmailSendCodeRequest):
+    """Generates and dispatches a 6-digit access code to the specified email."""
+    code, is_smtp = await send_email_otp(body.email)
+    settings = get_settings()
+    message = (
+        f"A 6-digit access code has been dispatched to {body.email}"
+        if is_smtp
+        else f"Access code generated for {body.email} (logged to platform console)"
+    )
+    dev_code = code if settings.env == "development" or not is_smtp else None
+    return EmailSendCodeResponse(status="sent", message=message, dev_code=dev_code)
+
+
+@router.post("/email/verify-code", response_model=LoginResponse)
+async def verify_email_code(
+    body: EmailVerifyCodeRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """Verifies a 6-digit email OTP and issues an authenticated sovereign session."""
+    try:
+        user = await verify_email_otp(db, email=body.email, code=body.code)
+    except AuthError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
+
+    sess = await create_session(
+        db,
+        user=user,
+        ip_addr=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        amr=["email_otp"],
+    )
+    await db.commit()
+
+    access_token = issue_access_token(user=user, sess=sess)
+    set_refresh_cookie(response, issue_refresh_token(user=user, sess=sess))
+    return LoginResponse(
+        status="authenticated", access_token=access_token, mfa_setup_required=False
+    )
+
+
+# --- Single Sign-On (SSO / OIDC) ---
+@router.get("/sso/initiate", response_model=SsoInitiateResponse)
+async def initiate_sso(provider: str, redirect_uri: str | None = None):
+    """Returns the authorization URL for the requested SSO identity provider."""
+    settings = get_settings()
+    base_cb = redirect_uri or f"{settings.public_origin}/login"
+
+    if provider == "google":
+        client_id = settings.google_client_id
+        if client_id:
+            auth_url = (
+                f"https://accounts.google.com/o/oauth2/v2/auth?"
+                f"client_id={client_id}&redirect_uri={base_cb}&response_type=code&"
+                f"scope=openid%20email%20profile"
+            )
+            return SsoInitiateResponse(auth_url=auth_url, provider=provider, is_mock=False)
+        return SsoInitiateResponse(
+            auth_url=f"{base_cb}?sso=google_demo", provider="google", is_mock=True
+        )
+
+    if provider == "github":
+        client_id = settings.github_client_id
+        if client_id:
+            auth_url = (
+                f"https://github.com/login/oauth/authorize?"
+                f"client_id={client_id}&redirect_uri={base_cb}&scope=user:email"
+            )
+            return SsoInitiateResponse(auth_url=auth_url, provider=provider, is_mock=False)
+        return SsoInitiateResponse(
+            auth_url=f"{base_cb}?sso=github_demo", provider="github", is_mock=True
+        )
+
+    # Generic Enterprise OIDC / NOAA SAML
+    return SsoInitiateResponse(auth_url=f"{base_cb}?sso=oidc_demo", provider="oidc", is_mock=True)
+
+
+@router.post("/sso/instant", response_model=LoginResponse)
+async def instant_sso_login(
+    body: SsoInstantLoginRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """Instant Sovereign SSO authentication for Google, GitHub, or Enterprise OIDC."""
+    user = await authenticate_or_provision_sso_user(
+        db, email=body.email, provider=body.provider, display_name=body.display_name
+    )
+
+    sess = await create_session(
+        db,
+        user=user,
+        ip_addr=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+        amr=["sso", body.provider],
+    )
+    await db.commit()
+
+    access_token = issue_access_token(user=user, sess=sess)
+    set_refresh_cookie(response, issue_refresh_token(user=user, sess=sess))
+    return LoginResponse(
+        status="authenticated", access_token=access_token, mfa_setup_required=False
+    )

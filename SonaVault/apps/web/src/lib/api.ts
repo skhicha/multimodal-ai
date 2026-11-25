@@ -14,10 +14,15 @@ export function setAccessToken(token: string | null) {
 export function getAccessToken() {
   if (accessToken) return accessToken;
   try {
-    return sessionStorage.getItem("sv_access_token");
+    const stored = sessionStorage.getItem("sv_access_token");
+    if (stored) {
+      accessToken = stored;
+      return stored;
+    }
   } catch {
     return null;
   }
+  return null;
 }
 
 export async function apiFetch<T = any>(path: string, init: RequestInit = {}): Promise<T> {
@@ -25,8 +30,9 @@ export async function apiFetch<T = any>(path: string, init: RequestInit = {}): P
   if (!(init.body instanceof FormData) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  if (accessToken) {
-    headers.set("Authorization", `Bearer ${accessToken}`);
+  const token = getAccessToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
@@ -67,6 +73,47 @@ export function login(email: string, password: string): Promise<LoginResponse> {
   return apiFetch("/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
+  });
+}
+
+export interface EmailSendCodeResponse {
+  status: string;
+  message: string;
+  dev_code?: string | null;
+}
+
+export function sendEmailOtp(email: string): Promise<EmailSendCodeResponse> {
+  return apiFetch("/auth/email/send-code", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function verifyEmailOtp(email: string, code: string): Promise<LoginResponse> {
+  return apiFetch("/auth/email/verify-code", {
+    method: "POST",
+    body: JSON.stringify({ email, code }),
+  });
+}
+
+export interface SsoInitiateResponse {
+  auth_url: string;
+  provider: string;
+  is_mock: boolean;
+}
+
+export function initiateSso(provider: string): Promise<SsoInitiateResponse> {
+  return apiFetch(`/auth/sso/initiate?provider=${encodeURIComponent(provider)}`);
+}
+
+export function instantSsoLogin(
+  provider: string,
+  email: string,
+  displayName?: string
+): Promise<LoginResponse> {
+  return apiFetch("/auth/sso/instant", {
+    method: "POST",
+    body: JSON.stringify({ provider, email, display_name: displayName }),
   });
 }
 

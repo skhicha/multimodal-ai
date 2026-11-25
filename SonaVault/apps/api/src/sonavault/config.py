@@ -45,6 +45,21 @@ class Settings(BaseSettings):
     model_root: str = "./data/models"
     cache_root: str = "./data/cache"
 
+    # Email / SMTP
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "no-reply@sonavault.dev"
+    smtp_tls: bool = True
+
+    # SSO / OAuth2
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    oidc_discovery_url: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

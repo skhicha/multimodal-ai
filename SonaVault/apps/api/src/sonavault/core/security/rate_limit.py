@@ -26,7 +26,24 @@ def get_redis() -> redis.Redis:
     global _redis
     if _redis is None:
         settings = get_settings()
-        _redis = redis.from_url(settings.redis_url, decode_responses=True)
+        try:
+            import socket
+            from urllib.parse import urlparse
+
+            parsed = urlparse(settings.redis_url)
+            host = parsed.hostname or "localhost"
+            port = parsed.port or 6379
+            with socket.create_connection((host, port), timeout=0.5):
+                pass
+            _redis = redis.from_url(settings.redis_url, decode_responses=True)
+        except Exception:
+            # Redis unavailable (dev / test) — fall back to in-process fakeredis
+            try:
+                from fakeredis import aioredis as _fake_aioredis  # type: ignore
+
+                _redis = _fake_aioredis.FakeRedis(decode_responses=True)
+            except ImportError:
+                _redis = redis.from_url(settings.redis_url, decode_responses=True)
     return _redis
 
 
