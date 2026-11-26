@@ -27,6 +27,7 @@ services:
     volumes:
       - sv-blobs:/data/blobs
       - sv-cache:/data/cache
+      - ./secrets:/run/secrets:ro
     ports: ["8080:8080"]
 
   mediamtx:
@@ -66,6 +67,7 @@ services:
     depends_on: [redis, postgres]
     command: ["python", "-m", "sonavault.worker", "ingest-cpu", "gpu-speech", "gpu-nlp", "fixity-audit"]
     volumes:
+      - ./secrets:/run/secrets:ro
       - sv-blobs:/data/blobs
       - sv-cache:/data/cache
 

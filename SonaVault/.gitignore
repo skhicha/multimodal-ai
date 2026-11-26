@@ -31,4 +31,5 @@ docs/*.docx
 *.tsbuildinfo
 *.db
 *.db-journal
+infra/docker/secrets/
 
