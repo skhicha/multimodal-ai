@@ -432,13 +432,13 @@ export function resumeJob(jobId: string): Promise<JobOut> {
 
 // --- Documents ---
 export interface DocumentChunkOut {
-  chunk_index: number;
+  index: number;
   text: string;
-  page_number: number | null;
+  page_or_section: number;
 }
 
 export interface DocumentChunksResponse {
-  asset_sha256: string;
+  sha256: string;
   chunks: DocumentChunkOut[];
 }
 
