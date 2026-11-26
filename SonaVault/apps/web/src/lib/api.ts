@@ -217,8 +217,9 @@ export function getTranscript(sha256: string): Promise<TranscriptResponse> {
 }
 
 export function translateTranscript(sha256: string, targetLang: string): Promise<TranscriptResponse> {
-  return apiFetch(`/transcripts/${sha256}/translate?target_lang=${encodeURIComponent(targetLang)}`, {
+  return apiFetch(`/transcripts/${sha256}/translate`, {
     method: "POST",
+    body: JSON.stringify({ target_lang: targetLang }),
   });
 }
 
