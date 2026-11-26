@@ -29,7 +29,7 @@ async def get_spl_timeline(db: AsyncSession, *, sha256: str, user: CurrentUser) 
         .where(AcousticEvent.asset_sha256 == sha256, AcousticEvent.spl_db_broadband.is_not(None))
         .order_by(AcousticEvent.window_start_sec)
     )
-    return [row[0] for row in result.all()]
+    return [row[0] for row in result.all() if row[0] is not None]
 
 
 async def edit_event(

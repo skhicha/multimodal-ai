@@ -69,7 +69,7 @@ def verify_password(password: str, phc_hash: str) -> bool:
 
 
 def needs_rehash(phc_hash: str) -> bool:
-    return _hasher().check_needs_rehash(phc_hash)
+    return _hasher().current_hasher.check_needs_rehash(phc_hash)
 
 
 @lru_cache

@@ -42,7 +42,7 @@ async def hybrid_text_search(
     if not rerank or not candidates:
         return [
             {
-                "asset_sha256": c.payload["asset_sha256"],
+                "asset_sha256": (c.payload or {})["asset_sha256"],
                 "score": c.score,
                 "rerank_score": None,
                 "payload": c.payload,
@@ -50,7 +50,7 @@ async def hybrid_text_search(
             for c in candidates[:limit]
         ]
 
-    documents = [c.payload.get("text", "") for c in candidates]
+    documents = [(c.payload or {}).get("text", "") for c in candidates]
     rerank_result = await nlp_client.rerank(query, documents)
     scored = sorted(
         zip(candidates, rerank_result.results, strict=True),
@@ -59,7 +59,7 @@ async def hybrid_text_search(
     )
     return [
         {
-            "asset_sha256": cand.payload["asset_sha256"],
+            "asset_sha256": (cand.payload or {})["asset_sha256"],
             "score": cand.score,
             "rerank_score": rr.score,
             "payload": cand.payload,
@@ -86,7 +86,7 @@ async def acoustic_text_search(
     )
     return [
         {
-            "asset_sha256": p.payload["asset_sha256"],
+            "asset_sha256": (p.payload or {})["asset_sha256"],
             "score": p.score,
             "rerank_score": None,
             "payload": p.payload,
@@ -142,11 +142,12 @@ async def debug_hybrid_text_search(
     for rank, p in enumerate(dense_points, 1):
         pid = str(p.id)
         if pid not in by_id:
+            payload = p.payload or {}
             by_id[pid] = {
                 "point_id": pid,
-                "asset_sha256": p.payload.get("asset_sha256", ""),
-                "text": p.payload.get("text"),
-                "payload": p.payload,
+                "asset_sha256": payload.get("asset_sha256", ""),
+                "text": payload.get("text"),
+                "payload": payload,
             }
         by_id[pid]["dense_score"] = float(p.score)
         by_id[pid]["dense_rank"] = rank
@@ -154,11 +155,12 @@ async def debug_hybrid_text_search(
     for rank, p in enumerate(sparse_points, 1):
         pid = str(p.id)
         if pid not in by_id:
+            payload = p.payload or {}
             by_id[pid] = {
                 "point_id": pid,
-                "asset_sha256": p.payload.get("asset_sha256", ""),
-                "text": p.payload.get("text"),
-                "payload": p.payload,
+                "asset_sha256": payload.get("asset_sha256", ""),
+                "text": payload.get("text"),
+                "payload": payload,
             }
         by_id[pid]["sparse_score"] = float(p.score)
         by_id[pid]["sparse_rank"] = rank
@@ -166,11 +168,12 @@ async def debug_hybrid_text_search(
     for rank, p in enumerate(rrf_points, 1):
         pid = str(p.id)
         if pid not in by_id:
+            payload = p.payload or {}
             by_id[pid] = {
                 "point_id": pid,
-                "asset_sha256": p.payload.get("asset_sha256", ""),
-                "text": p.payload.get("text"),
-                "payload": p.payload,
+                "asset_sha256": payload.get("asset_sha256", ""),
+                "text": payload.get("text"),
+                "payload": payload,
             }
         by_id[pid]["rrf_score"] = float(p.score)
         by_id[pid]["rrf_rank"] = rank
@@ -184,7 +187,7 @@ async def debug_hybrid_text_search(
 
         sorted_items = sorted(
             items,
-            key=lambda x: x.get("rerank_score") if x.get("rerank_score") is not None else -999.0,
+            key=lambda x: float(x["rerank_score"]) if x.get("rerank_score") is not None else -999.0,
             reverse=True,
         )
         for final_rank, item in enumerate(sorted_items, 1):

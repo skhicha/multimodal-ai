@@ -145,6 +145,8 @@ async def confirm_totp(db: AsyncSession, *, user: CurrentUser, code: str) -> lis
     method.confirmed_at = datetime.now(UTC)
 
     db_user = await db.get(User, user_id)
+    if db_user is None:
+        raise UserNotFoundError(f"User {user_id} not found")
     db_user.mfa_enabled = True
 
     codes = await _issue_recovery_codes(db, user_id=user_id)
@@ -205,6 +207,8 @@ async def webauthn_register_verify(
         )
     )
     db_user = await db.get(User, user_id)
+    if db_user is None:
+        raise UserNotFoundError(f"User {user_id} not found")
     db_user.mfa_enabled = True
 
     codes = None

@@ -49,10 +49,11 @@ services:
     image: qdrant/qdrant:v1.20.0
     profiles: ["core"]
     volumes: ["sv-qdrant:/qdrant/storage"]
+    ports: ["6333:6333"]
 
   redis:
     image: redis:7-alpine
-    profiles: ["redis-queue"]
+    profiles: ["core", "redis-queue"]
     command: >
       redis-server --appendonly yes --requirepass ${SV_REDIS_PASSWORD:-changeme}
       --maxclients 10000 --timeout 1800 --maxmemory 512mb --maxmemory-policy noeviction

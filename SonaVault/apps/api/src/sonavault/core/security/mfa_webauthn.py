@@ -39,7 +39,7 @@ async def pop_challenge(*, key: str) -> bytes | None:
     if value is None:
         return None
     await r.delete(redis_key)
-    return bytes.fromhex(value)
+    return bytes.fromhex(value if isinstance(value, str) else value.decode())
 
 
 def registration_options(*, user_id: str, email: str, existing_credential_ids: list[bytes]):

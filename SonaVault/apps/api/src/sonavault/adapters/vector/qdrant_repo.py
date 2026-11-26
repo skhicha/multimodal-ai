@@ -12,7 +12,7 @@ injects `rbac_tier <= user.max_tier AND sanctuary_id IN user.sanctuary_scopes`
 
 import uuid
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypedDict
 
 from qdrant_client import AsyncQdrantClient, models
 
@@ -22,7 +22,14 @@ RRF_K = 60
 RRF_WEIGHTS = [1.5, 1.0]  # [dense, sparse]
 PREFETCH_LIMIT = 50
 
-COLLECTIONS = {
+
+class CollectionSchema(TypedDict):
+    dense: str
+    dense_size: int
+    sparse: str
+
+
+COLLECTIONS: dict[str, CollectionSchema] = {
     "transcript_segments": {"dense": "bge_dense", "dense_size": 1024, "sparse": "bge_sparse"},
     "document_chunks": {"dense": "bge_dense", "dense_size": 1024, "sparse": "bge_sparse"},
     "acoustic_events": {"dense": "clap_audio", "dense_size": 512, "sparse": "audioset_sparse"},
