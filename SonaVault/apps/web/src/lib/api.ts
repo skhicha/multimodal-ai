@@ -167,14 +167,15 @@ export function logoutAll() {
 // --- Ingest & Assets ---
 export interface AssetOut {
   sha256: string;
-  original_filename: string;
-  media_type: string;
-  sanctuary_code: string;
-  depth_meters: number | null;
-  sample_rate_hz: number | null;
-  duration_seconds: number | null;
-  tier_required: number;
-  created_at: string;
+  asset_type: string;
+  original_filename: string | null;
+  mime_type: string;
+  size_bytes: number;
+  sanctuary_id: string | null;
+  station_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  geo_qa_flag: string | null;
 }
 
 export function listAssets(): Promise<AssetOut[]> {

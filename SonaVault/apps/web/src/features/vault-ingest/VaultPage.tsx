@@ -20,47 +20,51 @@ import { ingestAudioFile, listAssets, type AssetOut } from "@/lib/api";
 const MOCK_ASSETS: AssetOut[] = [
   {
     sha256: "b6d8f8a12c4e6f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a",
+    asset_type: "audio",
     original_filename: "SanctSound_CI01_02_20241014T120000Z.wav",
-    media_type: "audio/wav",
-    sanctuary_code: "CI01",
-    depth_meters: 182,
-    sample_rate_hz: 48000,
-    duration_seconds: 120.5,
-    tier_required: 1,
-    created_at: "2024-10-14T12:05:00Z",
+    mime_type: "audio/wav",
+    size_bytes: 4820000,
+    sanctuary_id: "CI01",
+    station_code: "CI01",
+    latitude: 34.0,
+    longitude: -120.0,
+    geo_qa_flag: null,
   },
   {
     sha256: "c7e9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+    asset_type: "audio",
     original_filename: "SanctSound_SB01_05_FinWhale_Pulse20Hz.flac",
-    media_type: "audio/flac",
-    sanctuary_code: "SB01",
-    depth_meters: 85,
-    sample_rate_hz: 48000,
-    duration_seconds: 64.2,
-    tier_required: 2,
-    created_at: "2024-10-15T08:20:00Z",
+    mime_type: "audio/flac",
+    size_bytes: 2560000,
+    sanctuary_id: "SB01",
+    station_code: "SB01",
+    latitude: 42.4,
+    longitude: -70.3,
+    geo_qa_flag: null,
   },
   {
     sha256: "d8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0",
+    asset_type: "xml",
     original_filename: "NOAA_SanctSound_Monthly_SPL_Summary_CI01.xml",
-    media_type: "application/xml",
-    sanctuary_code: "CI01",
-    depth_meters: 182,
-    sample_rate_hz: null,
-    duration_seconds: null,
-    tier_required: 1,
-    created_at: "2024-10-16T14:10:00Z",
+    mime_type: "application/xml",
+    size_bytes: 128000,
+    sanctuary_id: "CI01",
+    station_code: "CI01",
+    latitude: 34.0,
+    longitude: -120.0,
+    geo_qa_flag: null,
   },
   {
     sha256: "e9a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1",
+    asset_type: "audio",
     original_filename: "FLEURS_MarineRadio_Field_Transmission_FR.wav",
-    media_type: "audio/wav",
-    sanctuary_code: "OC02",
-    depth_meters: 145,
-    sample_rate_hz: 16000,
-    duration_seconds: 45.0,
-    tier_required: 1,
-    created_at: "2024-10-17T09:45:00Z",
+    mime_type: "audio/wav",
+    size_bytes: 960000,
+    sanctuary_id: "OC02",
+    station_code: "OC02",
+    latitude: 47.9,
+    longitude: -124.8,
+    geo_qa_flag: null,
   },
 ];
 
@@ -75,7 +79,6 @@ export default function VaultPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [sanctuaryCode, setSanctuaryCode] = useState("CI01");
   const [depthMeters, setDepthMeters] = useState(182);
-  const [sampleRate] = useState(48000);
   const [computedSha256, setComputedSha256] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
@@ -89,10 +92,10 @@ export default function VaultPage() {
 
   const filteredAssets = assets.filter((asset) => {
     const matchesSanc =
-      filterSanctuary === "ALL" || asset.sanctuary_code.includes(filterSanctuary);
+      filterSanctuary === "ALL" || (asset.sanctuary_id ?? "").includes(filterSanctuary);
     const matchesQuery =
       searchQuery === "" ||
-      asset.original_filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (asset.original_filename ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       asset.sha256.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSanc && matchesQuery;
   });
@@ -115,10 +118,8 @@ export default function VaultPage() {
 
     const formData = new FormData();
     formData.append("file", selectedFile);
-    formData.append("sanctuary_code", sanctuaryCode);
-    formData.append("depth_meters", depthMeters.toString());
-    formData.append("sample_rate_hz", sampleRate.toString());
-    formData.append("tier_required", "1");
+    formData.append("sanctuary_id", sanctuaryCode);
+    formData.append("station_code", sanctuaryCode);
 
     try {
       await ingestAudioFile(formData);
@@ -129,14 +130,15 @@ export default function VaultPage() {
       setAssets((prev) => [
         {
           sha256: computedSha256 || "9f82c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b899",
+          asset_type: "audio",
           original_filename: selectedFile.name,
-          media_type: selectedFile.type || "audio/wav",
-          sanctuary_code: sanctuaryCode,
-          depth_meters: depthMeters,
-          sample_rate_hz: sampleRate,
-          duration_seconds: 60,
-          tier_required: 1,
-          created_at: new Date().toISOString(),
+          mime_type: selectedFile.type || "audio/wav",
+          size_bytes: selectedFile.size,
+          sanctuary_id: sanctuaryCode,
+          station_code: sanctuaryCode,
+          latitude: null,
+          longitude: null,
+          geo_qa_flag: null,
         },
         ...prev,
       ]);
@@ -217,15 +219,15 @@ export default function VaultPage() {
               <tr>
                 <th className="px-5 py-3.5">Asset &amp; Cryptographic Hash</th>
                 <th className="px-5 py-3.5">Sanctuary Station</th>
-                <th className="px-5 py-3.5">Format &amp; Rate</th>
-                <th className="px-5 py-3.5">Duration</th>
-                <th className="px-5 py-3.5">Tier</th>
+                <th className="px-5 py-3.5">Format</th>
+                <th className="px-5 py-3.5">Size</th>
+                <th className="px-5 py-3.5">Geo QA</th>
                 <th className="px-5 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredAssets.map((asset) => {
-                const isAudio = asset.media_type.startsWith("audio");
+                const isAudio = asset.mime_type.startsWith("audio");
                 return (
                   <tr key={asset.sha256} className="transition hover:bg-white/5">
                     <td className="px-5 py-4">
@@ -234,7 +236,9 @@ export default function VaultPage() {
                           {isAudio ? <FileAudio size={16} /> : <FileText size={16} />}
                         </span>
                         <div>
-                          <p className="font-semibold text-white">{asset.original_filename}</p>
+                          <p className="font-semibold text-white">
+                            {asset.original_filename ?? "untitled"}
+                          </p>
                           <p className="mt-1 font-mono text-[11px] text-slate-500 truncate max-w-xs">
                             {asset.sha256}
                           </p>
@@ -243,26 +247,19 @@ export default function VaultPage() {
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded bg-tide-500/10 px-2 py-0.5 font-mono text-xs text-tide-300 border border-tide-400/20">
-                        {asset.sanctuary_code}
+                        {asset.sanctuary_id ?? "—"}
                       </span>
-                      {asset.depth_meters && (
-                        <span className="ml-2 text-slate-400 text-[11px]">{asset.depth_meters}m</span>
+                      {asset.station_code && (
+                        <span className="ml-2 text-slate-400 text-[11px]">{asset.station_code}</span>
                       )}
                     </td>
+                    <td className="px-5 py-4 font-mono text-slate-300">{asset.mime_type}</td>
                     <td className="px-5 py-4 font-mono text-slate-300">
-                      {asset.media_type}
-                      {asset.sample_rate_hz && (
-                        <span className="block text-[11px] text-slate-500">
-                          {(asset.sample_rate_hz / 1000).toFixed(0)} kHz
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-5 py-4 font-mono text-slate-300">
-                      {asset.duration_seconds ? `${asset.duration_seconds.toFixed(1)}s` : "—"}
+                      {(asset.size_bytes / 1_000_000).toFixed(2)} MB
                     </td>
                     <td className="px-5 py-4">
                       <span className="rounded px-2 py-0.5 text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                        Tier {asset.tier_required}
+                        {asset.geo_qa_flag ?? "OK"}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">
