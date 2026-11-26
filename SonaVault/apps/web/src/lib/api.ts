@@ -196,19 +196,20 @@ export function ingestAudioFile(formData: FormData) {
 // --- Transcripts & Workbench ---
 export interface TranscriptSegmentOut {
   id: string;
+  seg_index: number;
   start_sec: number;
   end_sec: number;
-  text: str_or_null;
   speaker_label: string | null;
-  language: string | null;
-  translations?: Record<string, string>;
+  source_lang: string | null;
+  text_redacted: string;
+  translations_json: Record<string, string> | null;
+  entities_json: Record<string, unknown> | null;
+  is_hitl_override: boolean;
+  created_at: string;
 }
-
-type str_or_null = string | null;
 
 export interface TranscriptResponse {
   asset_sha256: string;
-  detected_language: string;
   segments: TranscriptSegmentOut[];
 }
 
@@ -230,7 +231,7 @@ export function updateTranscriptSegment(
 ): Promise<TranscriptSegmentOut> {
   return apiFetch(`/transcripts/${sha256}/segments/${segmentId}`, {
     method: "PATCH",
-    body: JSON.stringify({ text }),
+    body: JSON.stringify({ text_redacted: text }),
   });
 }
 
@@ -239,8 +240,11 @@ export interface AcousticEventOut {
   id: string;
   window_start_sec: number;
   window_end_sec: number;
-  label: string;
+  audioset_label: string;
   confidence: number;
+  spl_db_broadband: number | null;
+  is_hitl_override: boolean;
+  created_at: string;
 }
 
 export interface EventsResponse {

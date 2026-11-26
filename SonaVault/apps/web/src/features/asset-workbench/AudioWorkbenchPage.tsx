@@ -30,42 +30,54 @@ const DEFAULT_SHA256 = "b6d8f8a12c4e6f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c
 const MOCK_SEGMENTS: TranscriptSegmentOut[] = [
   {
     id: "seg-1",
+    seg_index: 0,
     start_sec: 0.0,
     end_sec: 8.4,
-    text: "Channel Islands station CI01 recording initiation. Hydrophone depth 182 meters.",
+    text_redacted: "Channel Islands station CI01 recording initiation. Hydrophone depth 182 meters.",
     speaker_label: "OPERATOR",
-    language: "en",
-    translations: {
+    source_lang: "en",
+    translations_json: {
       fr: "Initialisation de l'enregistrement de la station CI01 des îles Channel. Profondeur de l'hydrophone 182 mètres.",
       es: "Iniciación de la grabación de la estación CI01 de Channel Islands. Profundidad del hidrófono 182 metros.",
       ja: "チャンネル諸島ステーションCI01録音開始。ハイドロフォン深度182メートル。",
     },
+    entities_json: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:00Z",
   },
   {
     id: "seg-2",
+    seg_index: 1,
     start_sec: 12.5,
     end_sec: 24.0,
-    text: "Low frequency tonal vocalization detected on channel one. Estimated 20Hz pulse train.",
+    text_redacted: "Low frequency tonal vocalization detected on channel one. Estimated 20Hz pulse train.",
     speaker_label: "ACOUSTIC_ANALYST",
-    language: "en",
-    translations: {
+    source_lang: "en",
+    translations_json: {
       fr: "Vocalisation tonale à basse fréquence détectée sur le canal un. Train d'impulsions estimé à 20 Hz.",
       es: "Vocalización tonal de baja frecuencia detectada en el canal uno. Tren de pulsos estimado de 20 Hz.",
       ja: "チャンネル1で低周波トーン発声を検出。推定20Hzのパルストレイン。",
     },
+    entities_json: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:12Z",
   },
   {
     id: "seg-3",
+    seg_index: 2,
     start_sec: 28.2,
     end_sec: 42.6,
-    text: "Transient cavitation signature approaching from northwest traffic lane, speed 14 knots.",
+    text_redacted: "Transient cavitation signature approaching from northwest traffic lane, speed 14 knots.",
     speaker_label: "VESSEL_WATCH",
-    language: "en",
-    translations: {
+    source_lang: "en",
+    translations_json: {
       fr: "Signature de cavitation transitoire approchant de la voie de circulation nord-ouest, vitesse 14 nœuds.",
       es: "Firma de cavitación transitoria que se aproxima desde el carril de tráfico del noroeste, velocidad 14 nudos.",
       ja: "北西航路から過渡的キャビテーションシグネチャが接近、速度14ノット。",
     },
+    entities_json: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:28Z",
   },
 ];
 
@@ -74,22 +86,31 @@ const MOCK_EVENTS: AcousticEventOut[] = [
     id: "ev-1",
     window_start_sec: 4.0,
     window_end_sec: 18.0,
-    label: "Fin Whale (Balaenoptera physalus) 20Hz",
+    audioset_label: "Fin Whale (Balaenoptera physalus) 20Hz",
     confidence: 0.94,
+    spl_db_broadband: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:00Z",
   },
   {
     id: "ev-2",
     window_start_sec: 22.0,
     window_end_sec: 38.0,
-    label: "Commercial Cargo Vessel Cavitation",
+    audioset_label: "Commercial Cargo Vessel Cavitation",
     confidence: 0.91,
+    spl_db_broadband: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:22Z",
   },
   {
     id: "ev-3",
     window_start_sec: 45.0,
     window_end_sec: 58.0,
-    label: "Snapping Shrimp Ambient Cluster",
+    audioset_label: "Snapping Shrimp Ambient Cluster",
     confidence: 0.78,
+    spl_db_broadband: null,
+    is_hitl_override: false,
+    created_at: "2024-10-14T12:05:45Z",
   },
 ];
 
@@ -152,7 +173,7 @@ export default function AudioWorkbenchPage() {
     if (lang === "original") return;
 
     // Check if translation exists, otherwise call API
-    const needsTranslation = segments.some((s) => !s.translations || !s.translations[lang]);
+    const needsTranslation = segments.some((s) => !s.translations_json || !s.translations_json[lang]);
     if (needsTranslation) {
       setIsTranslating(true);
       try {
@@ -176,11 +197,11 @@ export default function AudioWorkbenchPage() {
     try {
       await updateTranscriptSegment(sha256Param, editingSegment.id, editText);
       setSegments((prev) =>
-        prev.map((s) => (s.id === editingSegment.id ? { ...s, text: editText } : s))
+        prev.map((s) => (s.id === editingSegment.id ? { ...s, text_redacted: editText } : s))
       );
     } catch {
       setSegments((prev) =>
-        prev.map((s) => (s.id === editingSegment.id ? { ...s, text: editText } : s))
+        prev.map((s) => (s.id === editingSegment.id ? { ...s, text_redacted: editText } : s))
       );
     } finally {
       setIsSavingEdit(false);
@@ -338,9 +359,9 @@ export default function AudioWorkbenchPage() {
                 {segments.map((seg) => {
                   const isActive = currentTime >= seg.start_sec && currentTime <= seg.end_sec;
                   const displayedText =
-                    activeLang !== "original" && seg.translations?.[activeLang]
-                      ? seg.translations[activeLang]
-                      : seg.text;
+                    activeLang !== "original" && seg.translations_json?.[activeLang]
+                      ? seg.translations_json[activeLang]
+                      : seg.text_redacted;
 
                   return (
                     <div
@@ -366,7 +387,7 @@ export default function AudioWorkbenchPage() {
                         <button
                           onClick={() => {
                             setEditingSegment(seg);
-                            setEditText(seg.text || "");
+                            setEditText(seg.text_redacted || "");
                           }}
                           className="opacity-0 group-hover:opacity-100 transition rounded p-1 text-slate-400 hover:text-white hover:bg-white/10"
                           title="HITL Analyst Correction"
@@ -411,7 +432,7 @@ export default function AudioWorkbenchPage() {
                     >
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-white truncate max-w-[170px]">
-                          {ev.label}
+                          {ev.audioset_label}
                         </span>
                         <span className="font-mono font-bold text-signal-amber">
                           {(ev.confidence * 100).toFixed(0)}%
