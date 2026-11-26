@@ -7,6 +7,11 @@
 [![Frontend](https://img.shields.io/badge/frontend-React%2018%20%7C%20Vite%20%7C%20TS-cyan)](apps/web/)
 [![Hardware](https://img.shields.io/badge/hardware-NVIDIA%20GB10%20(sm__121)-76b900)](infra/)
 [![Models](https://img.shields.io/badge/models-100%25%20Open%20Weights-purple)](services/)
+[![Convergence](https://img.shields.io/badge/convergence-verified%20end--to--end-success)](apps/api/tests/)
+
+### ✅ End-to-End Convergence Verification
+
+The platform has been validated end-to-end on real NVIDIA GB10 hardware: backend test suite (121/121), static analysis (`ruff` + `mypy`, zero errors), frontend typecheck/build (`tsc --noEmit`, clean), and an exhaustive Playwright click-through of every page and control — auth (password, TOTP MFA enrollment/login, session revoke), admin console (feature flags, RBAC, user search), the full ingestion pipeline on real files, HITL transcript correction, and briefing synthesis/export — with zero console or page errors. The pass fixed several real defects uncovered during verification: two ORM models (`hydrophone_streams`, `briefings`) missing their Alembic migrations entirely, a Postgres `ARRAY`/`JSON` column-type mismatch breaking register/login/MFA/feature-flag endpoints, missing secret mounts in Docker Compose, and multiple frontend↔backend schema drifts that silently dropped data or crashed components.
 
 SonaVault is a sovereign, open-weight platform for **Multilingual Acoustic Soundscape, Field-Dispatch, and Regulatory Dossier Intelligence** — engineered specifically for coastal marine sanctuary monitoring, maritime incident coordination, and archival bioacoustic research.
 

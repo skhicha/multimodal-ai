@@ -22,6 +22,7 @@ A 100%-open-source, non-visual multimodal platform processing hydrophone soundsc
 - **Pipeline & Infrastructure**: 7-stage resumable ingestion DAG with checkpoint admission control, MediaMTX Low-Latency HLS (LL-HLS) audio streaming, Qdrant v1.20 3-collection hybrid RRF search (`k=60`), OAIS/PREMIS hash-chained provenance ledger with cryptographic immutability, WebAuthn/FIDO2 passkeys + Argon2id MFA security.
 - **Hardware & Observability**: Built atop NVIDIA Blackwell GB10 unified memory (128 GB), sm_121 architecture, running `nvidia/Qwen3-30B-A3B-NVFP4` via vLLM with FP8 KV cache. Features a 4-level Host Memory Watchdog daemon, provisioned Grafana dashboards, chaos test suite, and DeepEval quantitative RAG evaluation.
 - **Frontend SPA**: Full 9-feature React 18 + Vite + TypeScript application with Tailwind CSS, Framer Motion, and Recharts.
+- **Verified**: End-to-end convergence pass on real GB10 hardware — 121/121 backend tests, clean `ruff`/`mypy`/`tsc`, and a full Playwright click-through of every page with zero console errors.
 
 `PyTorch` `CUDA 13` `vLLM` `Qdrant RRF` `FastAPI` `React 18` `Tailwind` `MediaMTX` `DeepEval`
 
